@@ -28,6 +28,9 @@ final class AsyncHandlerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         // Replace async handlers to PublisherHandler
+        /**
+         * @var list<array> $tags
+         */
         foreach ($container->findTaggedServiceIds(MessageBusConfiguration::HANDLER_TAG) as $serviceId => $tags) {
             if ([] === $tags) {
                 continue;
@@ -36,7 +39,7 @@ final class AsyncHandlerPass implements CompilerPassInterface
             $handlerClass = self::stringOrNull($tags[0][MessageBusConfiguration::HANDLER_TAG_CLASS] ?? null);
             $handlerMethod = self::stringOrNull($tags[0][MessageBusConfiguration::HANDLER_TAG_METHOD] ?? null);
 
-            if (!$handlerClass || !$handlerMethod) {
+            if (null === $handlerClass || null === $handlerMethod) {
                 continue;
             }
 
@@ -48,10 +51,6 @@ final class AsyncHandlerPass implements CompilerPassInterface
             }
 
             $async = $refAsync[0]->newInstance();
-
-            if (!$async instanceof Async) {
-                continue;
-            }
 
             $handler = $container->getDefinition($serviceId);
             $handler->clearTag(MessageBusConfiguration::HANDLER_TAG);
@@ -73,7 +72,7 @@ final class AsyncHandlerPass implements CompilerPassInterface
 
         // Initialize Consumer HandlerRegistry
 
-        /** @var array<class-string<Message>, Reference> $messageToHandlerMap */
+        /** @var array<class-string<Message<mixed>>, Reference> $messageToHandlerMap */
         $messageToHandlerMap = [];
 
         foreach ($this->getMessageToHandlerIdsMap($container) as $message => $ids) {
@@ -104,22 +103,26 @@ final class AsyncHandlerPass implements CompilerPassInterface
     }
 
     /**
-     * @return array<class-string<Message>, list<string>
+     * @return array<class-string<Message<mixed>>, list<string>>
      */
     private function getMessageToHandlerIdsMap(ContainerBuilder $container): array
     {
-        /** @var array<class-string<Message>, list<string> $messageToHandlerIdsMap */
+        /** @var array<class-string<Message<mixed>>, list<string>> $messageToHandlerIdsMap */
         $messageToHandlerIdsMap = [];
 
+        /**
+         * @var list<array> $tags
+         */
         foreach ($container->findTaggedServiceIds(self::CONSUMER_TAG) as $serviceId => $tags) {
             foreach ($tags as $tag) {
-                $messageClass = self::stringOrNull($tag[MessageBusConfiguration::HANDLER_TAG_MESSAGE]);
+                $messageClass = self::stringOrNull($tag[MessageBusConfiguration::HANDLER_TAG_MESSAGE] ?? null);
 
-                if (!is_subclass_of($messageClass, Message::class, true)) {
+                if (null === $messageClass || !is_subclass_of($messageClass, Message::class, true)) {
                     continue;
                 }
 
                 $messageToHandlerIdsMap[$messageClass][] = $serviceId;
+                /** @phpstan-ignore nullCoalesce.offset */
                 $messageToHandlerIdsMap[$messageClass] = array_values(array_unique($messageToHandlerIdsMap[$messageClass] ?? []));
             }
         }

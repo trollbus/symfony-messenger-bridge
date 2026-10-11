@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Trollbus\SymfonyMessengerBridge\Consumer;
 
+use Trollbus\Message\Message;
 use Trollbus\MessageBus\Envelope;
 use Trollbus\MessageBus\HandlerRegistry;
 use Trollbus\MessageBus\MessageBus;
@@ -21,6 +22,9 @@ final class Consumer
         private readonly iterable $middlewares,
     ) {}
 
+    /**
+     * @param Envelope<void, Message<void>> $envelope
+     */
     public function consume(string $transport, Envelope $envelope): void
     {
         $handler = $this->handlerRegistry->get($envelope->getMessageClass());

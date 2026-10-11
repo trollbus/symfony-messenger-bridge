@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Trollbus\SymfonyMessengerBridge\Publisher;
 
+use Trollbus\Message\Message;
 use Trollbus\MessageBus\Handler;
 use Trollbus\MessageBus\MessageContext;
 
+/**
+ * @template TMessage of Message<void>
+ *
+ * @implements Handler<void, TMessage>
+ */
 final class PublisherHandler implements Handler
 {
+    /**
+     * @param Handler<void, TMessage> $inner
+     */
     public function __construct(
         private readonly Handler $inner,
         private readonly Publisher $publisher,
