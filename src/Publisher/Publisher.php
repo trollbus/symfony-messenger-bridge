@@ -7,6 +7,8 @@ namespace Trollbus\SymfonyMessengerBridge\Publisher;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Trollbus\MessageBus\Envelope;
+use Trollbus\MessageBus\Stamp;
+use Trollbus\SymfonyMessengerBridge\Symfony\ConvertibleToSymfonyStamp;
 use Trollbus\SymfonyMessengerBridge\Symfony\PublishMessage;
 
 final class Publisher
@@ -36,6 +38,13 @@ final class Publisher
                         new PublishMessage($envelope, $transport),
                         [
                             new TransportNamesStamp($transport),
+                            ...array_map(
+                                static fn(ConvertibleToSymfonyStamp $s) => $s->toSymfonyStamp(),
+                                array_filter(
+                                    $envelope->stamps,
+                                    static fn(Stamp $s) => $s instanceof ConvertibleToSymfonyStamp,
+                                ),
+                            ),
                         ],
                     );
                 }
