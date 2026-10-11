@@ -1,0 +1,48 @@
+includes:
+    - tools/phpstan/vendor/phpstan/phpstan-strict-rules/rules.neon
+    - tools/phpstan/vendor/phpstan/phpstan-phpunit/extension.neon
+    - tools/phpstan/vendor/phpstan/phpstan-phpunit/rules.neon
+    - tools/phpstan/vendor/spaze/phpstan-disallowed-calls/extension.neon
+    - tools/phpstan/vendor/spaze/phpstan-disallowed-calls/disallowed-dangerous-calls.neon
+
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+    tmpDir: var/phpstan
+
+    # strict rules
+    checkBenevolentUnionTypes: true
+    checkMissingCallableSignature: true
+    # checkMissingOverrideMethodAttribute: true
+    checkUninitializedProperties: true
+    # rememberPossiblyImpureFunctionValues: false
+    reportAlwaysTrueInLastCondition: true
+    reportAnyTypeWideningInVarTag: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+
+    # Disallow calls
+    disallowedFunctionCalls:
+        -
+            function: 'dump()'
+            message: 'use some logger instead'
+        -
+            function: 'dd()'
+            message: 'use some logger instead'
+        -
+            function: 'echo()'
+            message: 'use some logger instead'
+        -
+            function: 'print()'
+            message: 'use some logger instead'
+        -
+            function: 'die()'
+            message: 'return a response, throw an exception, or return an error state'
+        -
+            function: 'exit()'
+            message: 'return a response, throw an exception, or return an error state'
+        -
+            function: 'empty()'
+            message: 'empty() is too permissive and ambiguous — use explicit checks like === null, === '', === [], or isset() instead'
